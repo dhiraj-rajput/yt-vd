@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build output
+build/
+dist/
+wheels/
+*.spec.bak
+
+# Local app/runtime output
+.yt-vd-temp/
+download_history.db
+*.part
+*.ytdl
+
+# Local verification files not shipped with releases
+tests/
+testing_guide.md
+pytest-temp*/
+pytest-cache-files-*/
+
+# User downloads / scratch folders
+test-d/
+downloads/
+./testing_guide.md
+output/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
