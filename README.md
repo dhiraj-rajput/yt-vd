@@ -250,8 +250,8 @@ Build output is written to `dist/`.
 The repository includes a GitHub Actions workflow that builds Windows and Linux binaries when a version tag is pushed.
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 
 The workflow publishes these assets to the GitHub release:

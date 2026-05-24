@@ -19,7 +19,7 @@ fi
 # Install dependencies including dev
 echo ""
 echo "📦 Installing dependencies..."
-uv sync --extra dev
+uv sync --group dev
 
 # Check for ffmpeg (optional but recommended)
 if command -v ffmpeg &> /dev/null; then

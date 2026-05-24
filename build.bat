@@ -19,7 +19,7 @@ if %ERRORLEVEL% neq 0 (
 REM Install dependencies including dev
 echo.
 echo [*] Installing dependencies...
-uv sync
+uv sync --group dev
 
 REM Check for ffmpeg
 where ffmpeg >nul 2>&1
