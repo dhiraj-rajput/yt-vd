@@ -245,6 +245,24 @@ chmod +x build.sh
 
 Build output is written to `dist/`.
 
+## Publish a Release
+
+The repository includes a GitHub Actions workflow that builds Windows and Linux binaries when a version tag is pushed.
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The workflow publishes these assets to the GitHub release:
+
+- `yt-vd.exe`
+- `yt-vd-gui.exe`
+- `yt-vd`
+- `yt-vd-gui`
+
+The PowerShell and Linux installers download from the latest release.
+
 ## Development Checks
 
 ```bash
