@@ -9,9 +9,27 @@ permissions:
   contents: write
 
 jobs:
+  create-release:
+    name: Create GitHub release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create "$TAG_NAME" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$TAG_NAME" \
+              --notes "yt-vd $TAG_NAME" \
+              --latest
+
   build:
     name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    needs: create-release
     strategy:
       fail-fast: false
       matrix:
@@ -26,53 +44,48 @@ jobs:
             gui_asset: yt-vd-gui
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install uv
-        run: python -m pip install uv
-
-      - name: Install dependencies
-        run: uv sync --group dev
-
-      - name: Build executables
-        run: uv run pyinstaller yt-vd.spec --clean --noconfirm
-
-      - name: Prepare assets
+      - name: Checkout source
         shell: bash
         run: |
-          mkdir -p release-assets
-          cp "dist/${{ matrix.cli_asset }}" "release-assets/${{ matrix.cli_asset }}"
-          cp "dist/${{ matrix.gui_asset }}" "release-assets/${{ matrix.gui_asset }}"
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --depth=1 origin "$GITHUB_REF"
+          git checkout --force FETCH_HEAD
 
-      - name: Upload assets
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-${{ matrix.name }}
-          path: release-assets/*
-          if-no-files-found: error
+      - name: Install dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v python3 >/dev/null 2>&1; then
+            PYTHON=python3
+          else
+            PYTHON=python
+          fi
 
-  publish:
-    name: Publish GitHub release
-    runs-on: ubuntu-latest
-    needs: build
+          "$PYTHON" --version
+          "$PYTHON" -m pip install --upgrade pip
+          "$PYTHON" -m pip install . "pyinstaller>=6.11.0"
 
-    steps:
-      - name: Download assets
-        uses: actions/download-artifact@v4
-        with:
-          path: release-assets
+      - name: Build executables
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v python3 >/dev/null 2>&1; then
+            PYTHON=python3
+          else
+            PYTHON=python
+          fi
 
-      - name: Publish release
+          "$PYTHON" -m PyInstaller yt-vd.spec --clean --noconfirm
+
+      - name: Upload release assets
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_NAME: ${{ github.ref_name }}
         run: |
-          gh release view "$TAG_NAME" >/dev/null 2>&1 || \
-            gh release create "$TAG_NAME" --title "$TAG_NAME" --notes "yt-vd $TAG_NAME" --latest
-          gh release upload "$TAG_NAME" release-assets/release-windows/* release-assets/release-linux/* --clobber
+          gh release upload "$TAG_NAME" \
+            "dist/${{ matrix.cli_asset }}" \
+            "dist/${{ matrix.gui_asset }}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
